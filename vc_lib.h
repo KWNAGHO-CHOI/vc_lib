@@ -29,7 +29,7 @@ public:
 	// System::String^ 에서 char* 로의 형변환 함수
 	// 입력 인자 : System::String ^ in_String
 	// 출력 인자 : char *char_buff, int char_buff_size
-	void		To_Char(System::String ^ in_String, char *char_buff, int char_buff_size);
+	void To_Char(System::String ^ in_String, char *char_buff, int char_buff_size);
 	///////////////////////////////////////////////////////////////////////
 	// std::string 에서 char 로의 형변환 함수
 	void To_Char(std::string input, char* output, int output_length);

@@ -191,15 +191,15 @@ public:
 	void Set_Hardware_test_Allowable_voltage(unsigned char voltage);
 	unsigned char Get_Hardware_test_Allowable_voltage();
 
-	void excel_file_handle_setting(EXCEL_FILE_HANDLE_TYPE excel_file_handle);
+	void excel_file_handle_setting(EXCEL_FILE_HANDLE_TYPE &excel_file_handle);
 	void excel_file_Constructor();
-	void excel_MAC_Address_Allocation_Report(SCAN_DATA ListBefore, SCAN_DATA ListAfter);
-	void excel_MAC_Address_Allocation_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb);
-	void excel_MAC_Address_Allocation_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA ListBefore, SCAN_DATA ListAfter);
+	void excel_MAC_Address_Allocation_Report(SCAN_DATA ListBefore, SCAN_DATA ListAfter, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_MAC_Address_Allocation_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_MAC_Address_Allocation_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA ListBefore, SCAN_DATA ListAfter, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
 
-	void excel_Hardware_Test_Report(SCAN_DATA outlist_data);
-	void excel_HW_Test_Report_Header_write(xlnt::worksheet &ws, xlnt::workbook &wb);
-	void excel_HW_Test_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA outlist_data);
+	void excel_Hardware_Test_Report(SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_HW_Test_Report_Header_write(xlnt::worksheet &ws, xlnt::workbook &wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_HW_Test_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
 
 	void BLE_Scan_List_renewal_View_dataGridView_Clear(System::Windows::Forms::DataGridView^  dataGridView);
 	void BLE_Scan_Hardware_Test_View_dataGridView(System::Windows::Forms::DataGridView^  dataGridView, BLE_SCAN_LIST *List, System::Windows::Forms::Label^ list_Number, int View_Voltage);

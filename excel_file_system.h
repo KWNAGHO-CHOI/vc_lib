@@ -19,7 +19,7 @@
 typedef struct __excel_file_handle_type{
 	char folder_name[_MAX_PATH];
 	char folder_path[_MAX_PATH];
-	char file_format_string[_MAX_PATH];
+	char file_name[_MAX_PATH];
 	char file_path[_MAX_PATH];
 	int now_row;
 }EXCEL_FILE_HANDLE_TYPE;
@@ -41,10 +41,19 @@ public:
 	void set_now_row(int now_row);
 	int get_now_row();
 
-	bool cell_Check_for_duplicates(xlnt::worksheet &ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, char *str_value);
-	bool cell_Check_for_duplicates(xlnt::worksheet &ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, int int_value);
+	///////////////////////////////////////////////////////////////////////
+	// 셀내용을 str_value(char * type)와 비교 후 결과를 return 한다. 
+	// 결과 true: 일치, false: 불일치
+	bool cell_Check_for_duplicates(xlnt::worksheet &ws, xlnt::column_t column, xlnt::row_t row, char *str_value);
+	///////////////////////////////////////////////////////////////////////
+	// 셀내용을 int_value(int type)와 비교 후 결과를 return 한다. 
+	// 결과 true: 일치, false: 불일치
+	bool cell_Check_for_duplicates(xlnt::worksheet &ws, xlnt::column_t column, xlnt::row_t row, int int_value);
+	///////////////////////////////////////////////////////////////////////
+	// 셀내용을 return (int type)한다. 
 	int cell_read(xlnt::worksheet& ws, int& out_data, xlnt::column_t column, xlnt::row_t row);
-		// merge 추가 버젼
+
+	// merge 추가 버젼
 	void set_cell_Value(xlnt::worksheet &ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, xlnt::font &set_font, char *str_value, int width, xlnt::alignment aligment, const std::string &hex_color, xlnt::border &set_border);
 	void set_cell_Value(xlnt::worksheet &ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, xlnt::font &set_font, char *str_value, const std::string &hex_color, xlnt::border &set_border);
 	void set_cell_Value(xlnt::worksheet &ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, xlnt::font &set_font, int int_value, int width, xlnt::alignment aligment, const std::string &hex_color, xlnt::border &set_border);
