@@ -22,6 +22,7 @@ typedef struct __excel_file_handle_type{
 	char file_name[_MAX_PATH];
 	char file_path[_MAX_PATH];
 	int now_row;
+	int list_number;
 }EXCEL_FILE_HANDLE_TYPE;
 
 ref class excel_file_system : public vc_lib
