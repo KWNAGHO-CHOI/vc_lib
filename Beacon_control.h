@@ -193,13 +193,18 @@ public:
 
 	void excel_file_handle_setting(EXCEL_FILE_HANDLE_TYPE &excel_file_handle);
 	void excel_file_Constructor();
+	void excel_file_open_and_load(EXCEL_FILE_HANDLE_TYPE& excel_file_handle, xlnt::workbook& wb, xlnt::worksheet& ws, std::string& filename);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// 기존 기록된 파일일 경우 이어서 쓸지점을 검색하는 함수
+	void excel_now_row_Search(xlnt::worksheet& ws, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, xlnt::column_t column, char* title_Signature);
+
+	void excel_Hardware_Test_Report(SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_HW_Test_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_HW_Test_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+
 	void excel_MAC_Address_Allocation_Report(SCAN_DATA ListBefore, SCAN_DATA ListAfter, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
 	void excel_MAC_Address_Allocation_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
 	void excel_MAC_Address_Allocation_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA ListBefore, SCAN_DATA ListAfter, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
-
-	void excel_Hardware_Test_Report(SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
-	void excel_HW_Test_Report_Header_write(xlnt::worksheet &ws, xlnt::workbook &wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
-	void excel_HW_Test_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
 
 	void BLE_Scan_List_renewal_View_dataGridView_Clear(System::Windows::Forms::DataGridView^  dataGridView);
 	void BLE_Scan_Hardware_Test_View_dataGridView(System::Windows::Forms::DataGridView^  dataGridView, BLE_SCAN_LIST *List, System::Windows::Forms::Label^ list_Number, int View_Voltage);
