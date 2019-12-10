@@ -65,20 +65,21 @@ void cell_clear(
 
 }
 
+///////////////////////////////////////////////////////////////////////
+// 셀내용을 str_value(char * type)와 비교 후 결과를 return 한다. 
+// 결과 true: 일치, false: 불일치
 bool excel_file_system::cell_Check_for_duplicates(
 	xlnt::worksheet &ws,
-	xlnt::column_t start_column,
-	xlnt::row_t start_row,
-	xlnt::column_t end_column,
-	xlnt::row_t end_row,
+	xlnt::column_t column,
+	xlnt::row_t row,
 	char *str_value)
 {
 	bool result = false;
-
 	char read_value[100];
-	To_Char(ws.cell(start_column, start_row).to_string(), read_value, 100);
 
-	if (Data_Cmp(read_value, str_value,strlen(str_value)) == 0)
+	To_Char(ws.cell(column, row).to_string(), read_value, 100);
+
+	if (Data_Cmp(read_value, ANSItoUTF8(str_value),strlen(ANSItoUTF8(str_value))) == 0)
 	{
 		result = true;
 	}
@@ -86,19 +87,13 @@ bool excel_file_system::cell_Check_for_duplicates(
 	return (result);
 }
 
-int excel_file_system::cell_read(xlnt::worksheet& ws, int &out_data, xlnt::column_t column,	xlnt::row_t row)
-{
-	out_data = To_int(ws.cell(column, row).to_string());
-
-	return (1);
-}
-
+///////////////////////////////////////////////////////////////////////
+// 셀내용을 int_value(int type)와 비교 후 결과를 return 한다. 
+// 결과 true: 일치, false: 불일치
 bool excel_file_system::cell_Check_for_duplicates(
 	xlnt::worksheet &ws,
-	xlnt::column_t start_column,
-	xlnt::row_t start_row,
-	xlnt::column_t end_column,
-	xlnt::row_t end_row,
+	xlnt::column_t column,
+	xlnt::row_t row,
 	int int_value)
 {
 	bool result = false;
@@ -107,7 +102,7 @@ bool excel_file_system::cell_Check_for_duplicates(
 	char read_value[100];
 
 	sprintf_s(int_value_str, 100, "%d", int_value);
-	To_Char(ws.cell(start_column, start_row).to_string(), read_value, 100);
+	To_Char(ws.cell(column, row).to_string(), read_value, 100);
 
 	if (Data_Cmp(read_value, int_value_str, strlen(int_value_str)) == 0)
 	{
@@ -116,6 +111,18 @@ bool excel_file_system::cell_Check_for_duplicates(
 
 	return (result);
 }
+
+///////////////////////////////////////////////////////////////////////
+// 셀내용을 return (int type)한다. 
+int excel_file_system::cell_read(xlnt::worksheet& ws, int& out_data, xlnt::column_t column, xlnt::row_t row)
+{
+	out_data = To_int(ws.cell(column, row).to_string());
+
+	return (1);
+}
+
+
+
 
 
 void excel_file_system::set_cell_Value(	// str_value 셀 폭 설정 용
@@ -152,7 +159,7 @@ void excel_file_system::set_cell_Value(	// str_value 셀 폭 설정 용 (merge_cells 
 	xlnt::border &set_border)
 {
 	int duplicates_result = 0;
-	if (cell_Check_for_duplicates(ws, start_column, start_row, end_column, end_row, str_value) == true)
+	if (cell_Check_for_duplicates(ws, start_column, start_row, str_value) == true)
 	{
 		duplicates_result = 1;
 	}
@@ -212,7 +219,7 @@ void excel_file_system::set_cell_Value(	// str_value 셀폭 등 제외 사용 편의 성을
 	aligment_center.vertical(xlnt::vertical_alignment::center);
 
 	int duplicates_result = 0;
-	if (cell_Check_for_duplicates(ws, start_column, start_row, end_column, end_row, str_value) == true)
+	if (cell_Check_for_duplicates(ws, start_column, start_row, str_value) == true)
 	{
 		duplicates_result = 1;
 	}
@@ -268,7 +275,7 @@ void excel_file_system::set_cell_Value(	// int_value 셀 폭 설정 용 (merge_cells 
 	xlnt::border &set_border)
 {
 	int duplicates_result = 0;
-	if (cell_Check_for_duplicates(ws, start_column, start_row, end_column, end_row, int_value) == true)
+	if (cell_Check_for_duplicates(ws, start_column, start_row, int_value) == true)
 	{
 		duplicates_result = 1;
 	}
@@ -328,7 +335,7 @@ void excel_file_system::set_cell_Value(	// int_value 셀폭 등 제외 사용 편의 성을
 	aligment_center.vertical(xlnt::vertical_alignment::center);
 
 	int duplicates_result = 0;
-	if (cell_Check_for_duplicates(ws, start_column, start_row, end_column, end_row, int_value) == true)
+	if (cell_Check_for_duplicates(ws, start_column, start_row, int_value) == true)
 	{
 		duplicates_result = 1;
 	}
