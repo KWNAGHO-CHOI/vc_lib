@@ -272,7 +272,7 @@ void Beacon_control::excel_MAC_Address_Allocation_Report_Header_write(xlnt::work
 	{
 		ws.title(ANSItoUTF8("MAC 주소 할당 보고서"));
 		//	틀고정 설정
-		excel.set_freeze_panes(ws, 2, 11);		//	틀고정
+		excel.set_freeze_panes(ws, 2, 11);		//	2, 11 = 셀"B11"위치 틀고정
 		//	머릿글 부분 흰 바탕 필요 영역 색 지정
 		excel.set_cell_fill_Color(ws, 2, 2, 6, 9, NORMAL_BG_COLOR);
 		excel.set_cell_Value(ws, 1, row_cnt, title_font, "", 1, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	좌 경계 라인 폭 설정
@@ -306,6 +306,33 @@ void Beacon_control::excel_MAC_Address_Allocation_Report_Header_write(xlnt::work
 		excel.set_cell_Value(ws, 6, row_cnt, List_subtitle_font, "결과 상태", 15, aligment_center, TITLE_BG_COLOR, border_outside);	//	검사 결과
 
 		excel_file_handle.now_row = row_cnt + 1;
+		excel_file_handle.list_number = 1;
+	}
+	else
+	{
+		int end_row_cnt = 1;
+		for (int row_cnt = 1; row_cnt < 100; row_cnt++)
+		{
+			if (excel.cell_Check_for_duplicates(ws, 2, row_cnt, "순서") == true)
+			{
+				end_row_cnt = row_cnt + 1;
+			}
+		}
+
+		for (; end_row_cnt < 10000; end_row_cnt++)
+		{
+			int read_data_now = 0;
+			int read_data_next = 0;
+			excel.cell_read(ws, read_data_now, 2, end_row_cnt);
+			excel.cell_read(ws, read_data_next, 2, end_row_cnt + 1);
+
+			if ((read_data_now + 1) != read_data_next)
+			{
+				excel_file_handle.now_row = end_row_cnt + 1;
+				excel_file_handle.list_number = read_data_now + 1;
+				break;
+			}
+		}
 	}
 }
 
@@ -318,20 +345,8 @@ void Beacon_control::excel_MAC_Address_Allocation_Report_list_write(xlnt::worksh
 	//	이하 내용 완성 ( 실 검사 리스트 작성 )
 	int Complete_Quantity_now = 1;
 
-	if (ws.cell(2, now_row - 1).to_string() == "순서")
-	{
-		excel.set_cell_Value(ws, 2, now_row, normal_font, 1, NORMAL_BG_COLOR, border_outside);	//	순번
-	}
-	else
-	{
-		int read_data = 0;
-		excel.cell_read(ws, read_data, 2, now_row - 1);
-
-		excel.set_cell_Value(ws, 2, now_row, normal_font, read_data + 1, NORMAL_BG_COLOR, border_outside);	//	순번
-
-		Complete_Quantity_now = read_data;
-
-	}
+	excel.set_cell_Value(ws, 2, now_row, normal_font, excel_file_handle.list_number, NORMAL_BG_COLOR, border_outside);	//	순번
+	Complete_Quantity_now = excel_file_handle.list_number;
 
 	sprintf_s(temp, _MAX_PATH, "%02X:%02X:%02X:%02X:%02X:%02X"
 		, ListBefore.mac.d8bit[5]
@@ -394,12 +409,7 @@ void Beacon_control::excel_Hardware_Test_Report(SCAN_DATA outlist_data, EXCEL_FI
 	}
 	xlnt::worksheet ws = wb.active_sheet();
 
-	if (excel.get_drw_file_header_flag() == 0)
-	{
-		excel_HW_Test_Report_Header_write(ws, wb, excel_file_handle);
-		excel.enable_drw_file_header_flag();
-	}
-
+	excel_HW_Test_Report_Header_write(ws, wb, excel_file_handle);
 	excel_HW_Test_Report_list_write(ws, wb, outlist_data, excel_file_handle);
 
 	wb.save(filename);
@@ -410,43 +420,74 @@ void Beacon_control::excel_HW_Test_Report_Header_write(xlnt::worksheet &ws, xlnt
 	char temp[_MAX_PATH];
 	int row_cnt = 1;	//	엑셀 파일의 row 번호는 1부터 시작  (0 으로 하면 오류처리 됨)
 
-	ws.title(ANSItoUTF8("하드웨어 생산 보고서"));
+	if (excel.cell_Check_for_duplicates(ws, 2, 1, "        1차 생산 제품 검사 보고서") == false)
+	{
+		ws.title(ANSItoUTF8("하드웨어 생산 보고서"));
 
-	//	틀고정 설정
-	excel.set_freeze_panes(ws, 2, 11);		//	틀고정
-	//	머릿글 부분 흰 바탕 필요 영역 색 지정
-	excel.set_cell_fill_Color(ws, 2, 2, 6, 9, NORMAL_BG_COLOR);
-	excel.set_cell_Value(ws, 1, row_cnt, title_font, "", 1, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	좌 경계 라인 폭 설정
-	excel.set_cell_Value(ws, 7, row_cnt, title_font, "", 1, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	우 경계 라인 폭 설정
+		//	틀고정 설정
+		excel.set_freeze_panes(ws, 2, 11);		//	틀고정
+		//	머릿글 부분 흰 바탕 필요 영역 색 지정
+		excel.set_cell_fill_Color(ws, 2, 2, 6, 9, NORMAL_BG_COLOR);
+		excel.set_cell_Value(ws, 1, row_cnt, title_font, "", 1, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	좌 경계 라인 폭 설정
+		excel.set_cell_Value(ws, 7, row_cnt, title_font, "", 1, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	우 경계 라인 폭 설정
 
-	// 제목
-	excel.set_cell_fill_Color(ws, 2, row_cnt, 6, row_cnt, TITLE_BG_COLOR);
-	excel.set_cell_Value(ws, 2, row_cnt, title_font, "        1차 생산 제품 검사 보고서", 5, aligment_left, TITLE_BG_COLOR, border_No_side);	//	제목
+		// 제목
+		excel.set_cell_fill_Color(ws, 2, row_cnt, 6, row_cnt, TITLE_BG_COLOR);
+		excel.set_cell_Value(ws, 2, row_cnt, title_font, "        1차 생산 제품 검사 보고서", 5, aligment_left, TITLE_BG_COLOR, border_No_side);	//	제목
 
-	row_cnt += 2;	//	1칸 띄우기
-	// 작성일
-	sprintf_s(temp, _MAX_PATH, "작성일 : %s년%s월%s일", date_Read("yyyy"), date_Read("MM"), date_Read("dd"));
-	excel.set_cell_Value(ws, 2, row_cnt,normal_font, temp, 5, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	작성일
+		row_cnt += 2;	//	1칸 띄우기
+		// 작성일
+		sprintf_s(temp, _MAX_PATH, "작성일 : %s년%s월%s일", date_Read("yyyy"), date_Read("MM"), date_Read("dd"));
+		excel.set_cell_Value(ws, 2, row_cnt, normal_font, temp, 5, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	작성일
 
-	row_cnt += 2;	//	1칸 띄우기
-	// 1. 결과 보고 ( 소 제목 및 분류 )
-	excel.set_cell_Value(ws, 2, row_cnt++, normal_font, "1. 결과 보고", 5, aligment_left, NORMAL_BG_COLOR, border_No_side);		//	소 제목
-	excel.set_cell_Value(ws, 2, row_cnt, 3, row_cnt, List_subtitle_font, "      검사 진행 제품 수량", 5, aligment_left, TITLE_BG_COLOR, border_outside);	//	정상제품
-	excel.set_cell_Value(ws, 4, row_cnt, 6, row_cnt++, normal_font, ANSItoUTF8("                             1"), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	정상제품 수량
+		row_cnt += 2;	//	1칸 띄우기
+		// 1. 결과 보고 ( 소 제목 및 분류 )
+		excel.set_cell_Value(ws, 2, row_cnt++, normal_font, "1. 결과 보고", 5, aligment_left, NORMAL_BG_COLOR, border_No_side);		//	소 제목
+		excel.set_cell_Value(ws, 2, row_cnt, 3, row_cnt, List_subtitle_font, "      검사 진행 제품 수량", 5, aligment_left, TITLE_BG_COLOR, border_outside);	//	정상제품
+		excel.set_cell_Value(ws, 4, row_cnt, 6, row_cnt++, normal_font, ANSItoUTF8("                             1"), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	정상제품 수량
 
-	excel.set_cell_Value(ws, 2, row_cnt, 3, row_cnt, List_subtitle_font, "      정상 판별 제품 수량", 5, aligment_left, TITLE_BG_COLOR, border_outside);	//	불량 제품
-	excel.set_cell_Value(ws, 4, row_cnt, 6, row_cnt, normal_font, ANSItoUTF8("                             1"), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	불량제품 수량
+		excel.set_cell_Value(ws, 2, row_cnt, 3, row_cnt, List_subtitle_font, "      정상 판별 제품 수량", 5, aligment_left, TITLE_BG_COLOR, border_outside);	//	불량 제품
+		excel.set_cell_Value(ws, 4, row_cnt, 6, row_cnt, normal_font, ANSItoUTF8("                             1"), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	불량제품 수량
 
-	row_cnt += 2;	//	1칸 띄우기
-	// 2. 검사 비콘 리스트 제목 및 분류
-	excel.set_cell_Value(ws, 2, row_cnt++, normal_font, "2. 검사 비콘 리스트", 5, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	소 제목
-	excel.set_cell_Value(ws, 2, row_cnt, List_subtitle_font, "순서", 5, aligment_center, TITLE_BG_COLOR, border_outside);	//	순번
-	excel.set_cell_Value(ws, 3, row_cnt, List_subtitle_font, "MAC 주소", 20, aligment_center, TITLE_BG_COLOR, border_outside);	//	맥주소
-	excel.set_cell_Value(ws, 4, row_cnt, List_subtitle_font, "수신감도", 8, aligment_center, TITLE_BG_COLOR, border_outside);	//	수신감도
-	excel.set_cell_Value(ws, 5, row_cnt, List_subtitle_font, "전원 전압", 15, aligment_center, TITLE_BG_COLOR, border_outside);	//	전원 전압
-	excel.set_cell_Value(ws, 6, row_cnt, List_subtitle_font, "결과 상태", 15, aligment_center, TITLE_BG_COLOR, border_outside);	//	검사 결과
+		row_cnt += 2;	//	1칸 띄우기
+		// 2. 검사 비콘 리스트 제목 및 분류
+		excel.set_cell_Value(ws, 2, row_cnt++, normal_font, "2. 검사 비콘 리스트", 5, aligment_left, NORMAL_BG_COLOR, border_No_side);	//	소 제목
+		excel.set_cell_Value(ws, 2, row_cnt, List_subtitle_font, "순서", 5, aligment_center, TITLE_BG_COLOR, border_outside);	//	순번
+		excel.set_cell_Value(ws, 3, row_cnt, List_subtitle_font, "MAC 주소", 20, aligment_center, TITLE_BG_COLOR, border_outside);	//	맥주소
+		excel.set_cell_Value(ws, 4, row_cnt, List_subtitle_font, "수신감도", 8, aligment_center, TITLE_BG_COLOR, border_outside);	//	수신감도
+		excel.set_cell_Value(ws, 5, row_cnt, List_subtitle_font, "전원 전압", 15, aligment_center, TITLE_BG_COLOR, border_outside);	//	전원 전압
+		excel.set_cell_Value(ws, 6, row_cnt, List_subtitle_font, "결과 상태", 15, aligment_center, TITLE_BG_COLOR, border_outside);	//	검사 결과
 
-	excel_file_handle.now_row = row_cnt + 1;
+		excel_file_handle.now_row = row_cnt + 1;
+		excel_file_handle.list_number = 1;
+	}
+	else
+	{
+		int end_row_cnt = 1;
+		for (int row_cnt = 1; row_cnt < 100; row_cnt++)
+		{
+			if (excel.cell_Check_for_duplicates(ws, 2, row_cnt, "순서") == true)
+			{
+				end_row_cnt = row_cnt + 1;
+			}
+		}
+
+		for (; end_row_cnt < 10000; end_row_cnt++)
+		{
+			int read_data_now = 0;
+			int read_data_next = 0;
+			excel.cell_read(ws, read_data_now, 2, end_row_cnt);
+			excel.cell_read(ws, read_data_next, 2, end_row_cnt + 1);
+
+			if ((read_data_now + 1) != read_data_next)
+			{
+				excel_file_handle.now_row = end_row_cnt + 1;
+				excel_file_handle.list_number = read_data_now + 1;
+				break;
+			}
+		}
+	}
+
 }
 
 void Beacon_control::excel_HW_Test_Report_list_write(xlnt::worksheet &ws, xlnt::workbook &wb, SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle)
@@ -458,20 +499,8 @@ void Beacon_control::excel_HW_Test_Report_list_write(xlnt::worksheet &ws, xlnt::
 	//	이하 내용 완성 ( 실 검사 리스트 작성 )
 	int Complete_Quantity_now = 1;
 
-	if (ws.cell(2, now_row - 1).to_string() == "순서")
-	{
-		excel.set_cell_Value(ws, 2, now_row, normal_font, 1, NORMAL_BG_COLOR, border_outside);	//	순번
-	}
-	else
-	{
-		int read_data = 0;
-		excel.cell_read(ws, read_data, 2, now_row - 1);
-
-		excel.set_cell_Value(ws, 2, now_row, normal_font, read_data + 1, NORMAL_BG_COLOR, border_outside);	//	순번
-
-		Complete_Quantity_now = read_data;
-
-	}
+	excel.set_cell_Value(ws, 2, now_row, normal_font, excel_file_handle.list_number, NORMAL_BG_COLOR, border_outside);	//	순번
+	Complete_Quantity_now = excel_file_handle.list_number;
 
 	sprintf_s(temp, _MAX_PATH, "%02X:%02X:%02X:%02X:%02X:%02X" 
 		, outlist_data.mac.d8bit[5]
