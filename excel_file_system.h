@@ -23,6 +23,9 @@ typedef struct __excel_file_handle_type{
 	char file_path[_MAX_PATH];
 	int now_row;
 	int list_number;
+	int testProgress_Quantity;
+	xlnt::row_t list_start_row;
+	xlnt::row_t list_end_row;
 }EXCEL_FILE_HANDLE_TYPE;
 
 ref class excel_file_system : public vc_lib

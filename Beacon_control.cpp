@@ -258,30 +258,69 @@ void Beacon_control::excel_file_open_and_load(EXCEL_FILE_HANDLE_TYPE &excel_file
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// 기존 기록된 파일일 경우 이어서 쓸지점을 검색하는 함수
-void Beacon_control::excel_now_row_Search(xlnt::worksheet& ws, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, xlnt::column_t column, char * title_Signature)
+// 처음 파일을 기록 할 경우 쓸지점을 초기 설정 하는 함수
+void Beacon_control::excel_now_row_init(EXCEL_FILE_HANDLE_TYPE& excel_file_handle, int now_row)
 {
-	int end_row_cnt = 1;
+	excel_file_handle.list_start_row = now_row;
+	excel_file_handle.list_end_row = now_row;
+	excel_file_handle.now_row = now_row;
+	excel_file_handle.list_number = 1;
+
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 기존 기록된 파일일 경우 이어서 쓸지점을 검색하는 함수
+void Beacon_control::excel_now_row_Search(xlnt::worksheet& ws, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, xlnt::column_t column, char * title_Signature, SCAN_DATA outlist_data, xlnt::column_t MAC_Address_column)
+{
+	char Check_MAC_string[_MAX_PATH];
+	int offset = 0;
+	int MAC_Address_duplicates_flag = 0;
+
+	sprintf_s(Check_MAC_string, _MAX_PATH, "%02X:%02X:%02X:%02X:%02X:%02X"
+		, outlist_data.mac.d8bit[5]
+		, outlist_data.mac.d8bit[4]
+		, outlist_data.mac.d8bit[3]
+		, outlist_data.mac.d8bit[2]
+		, outlist_data.mac.d8bit[1]
+		, outlist_data.mac.d8bit[0]);
+
 	for (int row_cnt = 1; row_cnt < 100; row_cnt++)
 	{
 		if (excel.cell_Check_for_duplicates(ws, column, row_cnt, title_Signature) == true)
 		{
-			end_row_cnt = row_cnt + 1;
+			excel_file_handle.list_start_row = row_cnt + 1;
+			excel_file_handle.list_end_row = excel_file_handle.list_start_row;
+			offset = row_cnt;
 		}
 	}
 
-	for (; end_row_cnt < 10000; end_row_cnt++)
+	for (; excel_file_handle.list_end_row < 100000;)
 	{
 		int read_data_now = 0;
 		int read_data_next = 0;
-		excel.cell_read(ws, read_data_now, column, end_row_cnt);
-		excel.cell_read(ws, read_data_next, column, end_row_cnt + 1);
+		excel.cell_read(ws, read_data_now, column, excel_file_handle.list_end_row);
+		excel.cell_read(ws, read_data_next, column, excel_file_handle.list_end_row + 1);
+
+		if (excel.cell_Check_for_duplicates(ws, MAC_Address_column, excel_file_handle.list_end_row, Check_MAC_string) == true)
+		{
+			MAC_Address_duplicates_flag = 1;
+			excel_file_handle.now_row = excel_file_handle.list_end_row;
+			excel_file_handle.list_number = excel_file_handle.now_row - offset;
+		}
 
 		if ((read_data_now + 1) != read_data_next)
 		{
-			excel_file_handle.now_row = end_row_cnt + 1;
-			excel_file_handle.list_number = read_data_now + 1;
+			if (MAC_Address_duplicates_flag == 0)
+			{
+				excel_file_handle.now_row = excel_file_handle.list_end_row + 1;
+				excel_file_handle.list_number = excel_file_handle.now_row - offset;
+			}
+
+			excel_file_handle.testProgress_Quantity = excel_file_handle.now_row - offset;
 			break;
+		}
+		else
+		{
+			excel_file_handle.list_end_row++;
 		}
 	}
 }
@@ -294,14 +333,14 @@ void Beacon_control::excel_Hardware_Test_Report(SCAN_DATA outlist_data, EXCEL_FI
 	xlnt::worksheet ws;
 	excel_file_open_and_load(excel_file_handle, wb, ws, filename);
 	//	파일 내용 중 보고서 부분 완성
-	excel_HW_Test_Report_Header_write(ws, wb, excel_file_handle);
+	excel_HW_Test_Report_Header_write(ws, wb, excel_file_handle, outlist_data);
 	//	파일 내용 중 리스트 부분 완성
 	excel_HW_Test_Report_list_write(ws, wb, outlist_data, excel_file_handle);
 
 	wb.save(filename);
 }
 
-void Beacon_control::excel_HW_Test_Report_Header_write(xlnt::worksheet &ws, xlnt::workbook &wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle)
+void Beacon_control::excel_HW_Test_Report_Header_write(xlnt::worksheet &ws, xlnt::workbook &wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, SCAN_DATA outlist_data)
 {
 	//	보고서 부분이 작성 되었는지 확인
 	if (excel.cell_Check_for_duplicates(ws, 2, 1, "        1차 생산 제품 검사 보고서") == false)
@@ -348,14 +387,13 @@ void Beacon_control::excel_HW_Test_Report_Header_write(xlnt::worksheet &ws, xlnt
 		excel.set_cell_Value(ws, 5, row_cnt, List_subtitle_font, "전원 전압", 15, aligment_center, TITLE_BG_COLOR, border_outside);	//	전원 전압
 		excel.set_cell_Value(ws, 6, row_cnt, List_subtitle_font, "결과 상태", 15, aligment_center, TITLE_BG_COLOR, border_outside);	//	검사 결과
 
-		excel_file_handle.now_row = row_cnt + 1;
-		excel_file_handle.list_number = 1;
+		excel_now_row_init(excel_file_handle, row_cnt + 1);	// 처음 파일을 기록 할 경우 쓸지점을 초기 설정
+
 	}
 	else
 	{
-		excel_now_row_Search(ws, excel_file_handle, 2, "순서");
+		excel_now_row_Search(ws, excel_file_handle, 2, "순서", outlist_data, 3); // 기존 파일 있을 시 이어 쓰기 할 위치 검색
 	}
-
 }
 
 void Beacon_control::excel_HW_Test_Report_list_write(xlnt::worksheet &ws, xlnt::workbook &wb, SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle)
@@ -365,7 +403,7 @@ void Beacon_control::excel_HW_Test_Report_list_write(xlnt::worksheet &ws, xlnt::
 	int now_row = excel_file_handle.now_row;
 
 	//	이하 내용 완성 ( 실 검사 리스트 작성 )
-	int testProgress_Quantity = excel_file_handle.list_number;
+	int testProgress_Quantity = excel_file_handle.testProgress_Quantity;
 	int Complete_Quantity_now = 0;
 
 	excel.set_cell_Value(ws, 2, now_row, normal_font, excel_file_handle.list_number, NORMAL_BG_COLOR, border_outside);	//	순번
@@ -394,12 +432,10 @@ void Beacon_control::excel_HW_Test_Report_list_write(xlnt::worksheet &ws, xlnt::
 	sprintf_s(temp, _MAX_PATH, "                         %5d", testProgress_Quantity);
 	excel.set_cell_Value(ws, 4, 6, 6, 6, normal_font, ANSItoUTF8(temp), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	검사 진행 제품 수량
 
-	Complete_Quantity_now = excel.cell_Word_search_and_count(ws, 6, now_row - excel_file_handle.list_number, 6, now_row, "정상");
+	Complete_Quantity_now = excel.cell_Word_search_and_count(ws, 6, excel_file_handle.list_start_row, 6, excel_file_handle.list_end_row, "정상");
 
 	sprintf_s(temp, _MAX_PATH, "                         %5d", Complete_Quantity_now);
 	excel.set_cell_Value(ws, 4, 7, 6, 7, normal_font, ANSItoUTF8(temp), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	정상 판별 제품 수량
-
-	excel_file_handle.now_row = now_row + 1;
 
 }
 
@@ -412,14 +448,14 @@ void Beacon_control::excel_MAC_Address_Allocation_Report(SCAN_DATA ListBefore, S
 	excel_file_open_and_load(excel_file_handle, wb, ws, filename);
 
 	//	파일 내용 중 보고서 부분 완성
-	excel_MAC_Address_Allocation_Report_Header_write(ws, wb, excel_file_handle);
+	excel_MAC_Address_Allocation_Report_Header_write(ws, wb, excel_file_handle, ListBefore);
 	//	파일 내용 중 리스트 부분 완성
 	excel_MAC_Address_Allocation_Report_list_write(ws, wb, ListBefore, ListAfter, excel_file_handle);
 
 	wb.save(filename);
 }
 
-void Beacon_control::excel_MAC_Address_Allocation_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle)
+void Beacon_control::excel_MAC_Address_Allocation_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, SCAN_DATA outlist_data)
 {
 
 	if (excel.cell_Check_for_duplicates(ws, 2, 1, "        2차 MAC 주소 할당 보고서") == false)
@@ -464,12 +500,11 @@ void Beacon_control::excel_MAC_Address_Allocation_Report_Header_write(xlnt::work
 		excel.set_cell_Value(ws, 5, row_cnt, List_subtitle_font, "전원 전압", 10, aligment_center, TITLE_BG_COLOR, border_outside);	//	전원 전압
 		excel.set_cell_Value(ws, 6, row_cnt, List_subtitle_font, "결과 상태", 10, aligment_center, TITLE_BG_COLOR, border_outside);	//	검사 결과
 
-		excel_file_handle.now_row = row_cnt + 1;
-		excel_file_handle.list_number = 1;
+		excel_now_row_init(excel_file_handle, row_cnt + 1);	// 처음 파일을 기록 할 경우 쓸지점을 초기 설정
 	}
 	else
 	{
-		excel_now_row_Search(ws, excel_file_handle, 2, "순서");
+		excel_now_row_Search(ws, excel_file_handle, 2, "순서", outlist_data, 3); // 기존 파일 있을 시 이어 쓰기 할 위치 검색
 	}
 }
 
@@ -513,8 +548,6 @@ void Beacon_control::excel_MAC_Address_Allocation_Report_list_write(xlnt::worksh
 
 	sprintf_s(temp, _MAX_PATH, "                         %5d", Complete_Quantity_now);
 	excel.set_cell_Value(ws, 4, 6, 6, 6, normal_font, ANSItoUTF8(temp), 20, aligment_left, NORMAL_BG_COLOR, border_outside);	//	MAC 주소 설정 제품 수량 기록
-
-	excel_file_handle.now_row = now_row + 1;
 
 }
 

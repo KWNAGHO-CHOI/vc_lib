@@ -195,15 +195,18 @@ public:
 	void excel_file_Constructor();
 	void excel_file_open_and_load(EXCEL_FILE_HANDLE_TYPE& excel_file_handle, xlnt::workbook& wb, xlnt::worksheet& ws, std::string& filename);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// 처음 파일을 기록 할 경우 쓸지점을 초기 설정 하는 함수
+	void excel_now_row_init(EXCEL_FILE_HANDLE_TYPE& excel_file_handle, int now_row);
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 기존 기록된 파일일 경우 이어서 쓸지점을 검색하는 함수
-	void excel_now_row_Search(xlnt::worksheet& ws, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, xlnt::column_t column, char* title_Signature);
+	void excel_now_row_Search(xlnt::worksheet& ws, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, xlnt::column_t column, char* title_Signature, SCAN_DATA outlist_data, xlnt::column_t MAC_Address_column);
 
 	void excel_Hardware_Test_Report(SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
-	void excel_HW_Test_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_HW_Test_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, SCAN_DATA outlist_data);
 	void excel_HW_Test_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA outlist_data, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
 
 	void excel_MAC_Address_Allocation_Report(SCAN_DATA ListBefore, SCAN_DATA ListAfter, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
-	void excel_MAC_Address_Allocation_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
+	void excel_MAC_Address_Allocation_Report_Header_write(xlnt::worksheet& ws, xlnt::workbook& wb, EXCEL_FILE_HANDLE_TYPE& excel_file_handle, SCAN_DATA outlist_data);
 	void excel_MAC_Address_Allocation_Report_list_write(xlnt::worksheet& ws, xlnt::workbook& wb, SCAN_DATA ListBefore, SCAN_DATA ListAfter, EXCEL_FILE_HANDLE_TYPE& excel_file_handle);
 
 	void BLE_Scan_List_renewal_View_dataGridView_Clear(System::Windows::Forms::DataGridView^  dataGridView);
