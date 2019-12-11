@@ -121,6 +121,25 @@ int excel_file_system::cell_read(xlnt::worksheet& ws, int& out_data, xlnt::colum
 	return (1);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// 지정 범위 내의 셀내용을 check_Signature와 비교 검색하여 count 값을 반환 한다.
+int excel_file_system::cell_Word_search_and_count(xlnt::worksheet& ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, char* check_Signature)
+{
+	int count = 0;
+
+	for (auto row_cnt = start_row; row_cnt <= end_row; row_cnt++)
+	{
+		for (auto column_cnt = start_column; column_cnt <= end_column; column_cnt++)
+		{
+			if (cell_Check_for_duplicates(ws, column_cnt, row_cnt, check_Signature) == true)
+			{
+				count++;
+			}
+		}
+	}
+
+	return count;
+}
 
 
 

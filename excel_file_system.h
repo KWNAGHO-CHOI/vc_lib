@@ -53,6 +53,9 @@ public:
 	///////////////////////////////////////////////////////////////////////
 	// 셀내용을 return (int type)한다. 
 	int cell_read(xlnt::worksheet& ws, int& out_data, xlnt::column_t column, xlnt::row_t row);
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// 지정 범위 내의 셀내용을 check_Signature와 비교 검색하여 count 값을 반환 한다.
+	int cell_Word_search_and_count(xlnt::worksheet& ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, char* check_Signature);
 
 	// merge 추가 버젼
 	void set_cell_Value(xlnt::worksheet &ws, xlnt::column_t start_column, xlnt::row_t start_row, xlnt::column_t end_column, xlnt::row_t end_row, xlnt::font &set_font, char *str_value, int width, xlnt::alignment aligment, const std::string &hex_color, xlnt::border &set_border);

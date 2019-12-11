@@ -365,10 +365,10 @@ void Beacon_control::excel_HW_Test_Report_list_write(xlnt::worksheet &ws, xlnt::
 	int now_row = excel_file_handle.now_row;
 
 	//	이하 내용 완성 ( 실 검사 리스트 작성 )
-	int Complete_Quantity_now = 1;
+	int testProgress_Quantity = excel_file_handle.list_number;
+	int Complete_Quantity_now = 0;
 
 	excel.set_cell_Value(ws, 2, now_row, normal_font, excel_file_handle.list_number, NORMAL_BG_COLOR, border_outside);	//	순번
-	Complete_Quantity_now = excel_file_handle.list_number;
 
 	sprintf_s(temp, _MAX_PATH, "%02X:%02X:%02X:%02X:%02X:%02X" 
 		, outlist_data.mac.d8bit[5]
@@ -391,8 +391,11 @@ void Beacon_control::excel_HW_Test_Report_list_write(xlnt::worksheet &ws, xlnt::
 
 	// 1. 결과 보고 ( 내용 )
 	
-	sprintf_s(temp, _MAX_PATH, "                         %5d", BLE_Scanner.Hardware_test.Inspection_Quantity);
+	sprintf_s(temp, _MAX_PATH, "                         %5d", testProgress_Quantity);
 	excel.set_cell_Value(ws, 4, 6, 6, 6, normal_font, ANSItoUTF8(temp), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	검사 진행 제품 수량
+
+	Complete_Quantity_now = excel.cell_Word_search_and_count(ws, 6, now_row - excel_file_handle.list_number, 6, now_row, "정상");
+
 	sprintf_s(temp, _MAX_PATH, "                         %5d", Complete_Quantity_now);
 	excel.set_cell_Value(ws, 4, 7, 6, 7, normal_font, ANSItoUTF8(temp), 8, aligment_left, NORMAL_BG_COLOR, border_outside);	//	정상 판별 제품 수량
 
@@ -478,10 +481,9 @@ void Beacon_control::excel_MAC_Address_Allocation_Report_list_write(xlnt::worksh
 	int now_row = excel_file_handle.now_row;
 
 	//	이하 내용 완성 ( 실 검사 리스트 작성 )
-	int Complete_Quantity_now = 1;
+	int Complete_Quantity_now = 0;
 
 	excel.set_cell_Value(ws, 2, now_row, normal_font, excel_file_handle.list_number, NORMAL_BG_COLOR, border_outside);	//	순번
-	Complete_Quantity_now = excel_file_handle.list_number;
 
 	sprintf_s(temp, _MAX_PATH, "%02X:%02X:%02X:%02X:%02X:%02X"
 		, ListBefore.mac.d8bit[5]
@@ -507,6 +509,7 @@ void Beacon_control::excel_MAC_Address_Allocation_Report_list_write(xlnt::worksh
 	excel.set_cell_Value(ws, 6, now_row, blue_Color_font, "정상", NORMAL_BG_COLOR, border_outside);	//	검사 결과
 
 	// 1. 결과 보고 ( 내용 )
+	Complete_Quantity_now = excel.cell_Word_search_and_count(ws, 6, now_row - excel_file_handle.list_number, 6, now_row, "정상");
 
 	sprintf_s(temp, _MAX_PATH, "                         %5d", Complete_Quantity_now);
 	excel.set_cell_Value(ws, 4, 6, 6, 6, normal_font, ANSItoUTF8(temp), 20, aligment_left, NORMAL_BG_COLOR, border_outside);	//	MAC 주소 설정 제품 수량 기록
